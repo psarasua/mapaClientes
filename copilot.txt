@@ -1,0 +1,36 @@
+📌 Proyecto Sidebar + Carga Dinámica de Secciones
+✔ Objetivo: Sidebar colapsable que carga contenido dinámicamente con fetch() y muestra datos de Supabase.
+
+1️⃣ Configuración de Supabase
+📄 Archivo: supabaseConfig.js
+- Se estableció la conexión con Supabase usando createClient().
+- Se exportó el objeto supabase para usarlo en otros scripts.
+
+2️⃣ Carga de Clientes desde Supabase
+📄 Archivo: clientes.js
+- Se creó la función cargarClientes() que obtiene datos de Supabase y llena la tabla.
+- Se exportó cargarClientes() para llamarla desde main.js.
+- La tabla de clientes tiene estilos con Bootstrap.
+
+3️⃣ Carga Dinámica de Secciones
+📄 Archivo: main.js
+- Se creó la función cargarContenido(seccion), que usa fetch() para traer cada sección (inicio.html, perfil.html, clientes.html, etc.).
+- Si la sección es "Clientes", cargarClientes() se ejecuta automáticamente.
+- Se agregó un evento que detecta cambios en el hash (#clientes, #perfil) para cargar la sección correspondiente.
+
+4️⃣ Sidebar Colapsable
+📄 Archivo: sidebar.js
+- Se agregó la función toggleSidebar() que colapsa/expande el menú lateral.
+- Se ajustaron estilos en styles.css para que el contenido aparezca a la derecha del sidebar.
+- Se conectó el sidebar con cargarContenido() para cambiar secciones.
+
+5️⃣ Estructura de la Tabla de Clientes
+📄 Archivo: clientes.html
+- Se creó la tabla HTML con id="clientes-body" donde JavaScript insertará los datos dinámicamente.
+- Se integró Bootstrap para mejorar el diseño.
+
+6️⃣ Corrección de Errores
+⚙ Correcciones hechas: ✔ Se solucionó el error cargarClientes() already declared.
+✔ Se corrigió el error cargarContenido is not defined, asegurando que main.js se carga correctamente.
+✔ Se ajustó la ruta de fetch() para evitar errores 404 (clientes.html no encontrado).
+✔ Se agregó type="module" en index.html para permitir imports.

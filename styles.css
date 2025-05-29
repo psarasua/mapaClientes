@@ -1,0 +1,37 @@
+/* Fondo de la página en un tono claro */
+body {
+  background-color: #f8f9fa;
+  font-family: Arial, sans-serif;
+}
+
+
+/* Ajustes al contenedor del mapa */
+#map {
+  border: 2px solid #ddd;
+  border-radius: 5px;
+}
+
+
+/*Tabla Clientes*/
+.d-flex {
+  display: flex;
+}
+
+
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.circle-red {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  background-color: red;
+  border-radius: 50%;
+}
+.btn-mapa {
+  cursor: pointer; /* Hace que el mouse cambie a una mano */
+  text-decoration: underline;
+}

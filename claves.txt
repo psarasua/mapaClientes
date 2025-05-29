@@ -1,0 +1,4 @@
+Supabase:
+DatabasePassword: Milagros2014...
+URL: https://sokhrvidmsebozscwtqj.supabase.co
+Clave Publica: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNva2hydmlkbXNlYm96c2N3dHFqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDc3NzAyNDIsImV4cCI6MjA2MzM0NjI0Mn0.qCndk7SRgGz0h3CpKMW-NR3oTZhB5Cj3Q96fsEwXHZU
