@@ -2,6 +2,7 @@ import { cargarClientes } from './clientes.js';
 import { cargarCamiones } from './camiones.js';
 import { cargarDiasEntrega } from './dias_entrega.js';
 import { cargarRepartos } from './camiones_clientes.js';
+import { supabase } from './supabaseConfig.js';
 
 let excelData = [];
 
@@ -27,7 +28,8 @@ async function cargarContenido(seccion) {
       const excelFile = document.getElementById('excelFile');
       const uploadBtn = document.getElementById('uploadBtn');
       if (excelFile && uploadBtn) {
-       
+        excelFile.addEventListener('change', handleFile, false);
+        uploadBtn.addEventListener('click', subirASupabase);
       }
     }
 
@@ -79,7 +81,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 // Define las columnas requeridas según tu tabla en Supabase
-const columnasRequeridas = ['nombre', 'email', 'direccion']; // Ajusta según tus necesidades
+const columnasRequeridas = ['id','nombre', 'razon','codigo_alternativo', 'direccion','telefono','rut','x','y']; // Ajusta según tus necesidades
 
 function handleFile(e) {
   const file = e.target.files[0];
@@ -97,12 +99,7 @@ function handleFile(e) {
       return;
     }
     const columnasArchivo = Object.keys(excelData[0]);
-    const faltantes = columnasRequeridas.filter(col => !columnasArchivo.includes(col));
-    if (faltantes.length > 0) {
-      document.getElementById('mensaje').innerHTML = `<div class="alert alert-danger">Faltan columnas requeridas: <b>${faltantes.join(', ')}</b></div>`;
-      excelData = [];
-      return;
-    }
+   
 
     // Vista previa de los primeros 5 registros
     let preview = '<table class="table table-sm table-bordered mt-3"><thead><tr>';
@@ -123,11 +120,42 @@ function handleFile(e) {
   reader.readAsArrayBuffer(file);
 }
 
+function validarDatosExcel(data, columnasNumericas) {
+  const errores = [];
+  data.forEach((row, idx) => {
+    columnasNumericas.forEach(col => {
+      if (row[col] !== undefined && typeof row[col] === 'string') {
+        // Quita puntos y reemplaza coma por punto
+        const limpio = row[col].replace(/\./g, '').replace(',', '.');
+        if (isNaN(Number(limpio))) {
+          errores.push(`Fila ${idx + 2}: columna "${col}" valor "${row[col]}" no es numérico`);
+        }
+      }
+    });
+  });
+  return errores;
+}
+
 async function subirASupabase() {
   if (!excelData.length) {
     document.getElementById('mensaje').innerHTML = `<div class="alert alert-warning">Primero selecciona un archivo Excel.</div>`;
     return;
   }
+
+  // Limpia la columna rut quitando puntos y guiones
+  excelData.forEach(row => {
+    if (row.rut !== undefined && typeof row.rut === 'string') {
+      row.rut = row.rut.replace(/\./g, '').replace(/-/g, '');
+    }
+  });
+
+  // Validar datos antes de subir
+  const errores = validarDatosExcel(excelData, [ 'x', 'y']);
+  if (errores.length) {
+    document.getElementById('mensaje').innerHTML = `<div class="alert alert-danger">${errores.join('<br>')}</div>`;
+    return;
+  }
+
   document.getElementById('mensaje').innerHTML = `<div class="alert alert-info">Subiendo datos...</div>`;
   const { error } = await supabase
     .from('clientes') // Cambia por el nombre de tu tabla
