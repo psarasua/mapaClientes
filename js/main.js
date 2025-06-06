@@ -36,6 +36,21 @@ async function cargarContenido(seccion) {
     // Si la sección es "clientes", intentar ejecutar cargarClientes si existe
     if (seccion === "clientes") {
       cargarClientes();
+      // Asigna los eventos aquí
+      const btnAnterior = document.getElementById("anterior");
+      const btnSiguiente = document.getElementById("siguiente");
+      if (btnAnterior && btnSiguiente) {
+        btnAnterior.onclick = () => {
+          if (paginaActual > 1) {
+            paginaActual--;
+            cargarClientes(paginaActual);
+          }
+        };
+        btnSiguiente.onclick = () => {
+          paginaActual++;
+          cargarClientes(paginaActual);
+        };
+      }
     }
     if (seccion === "camiones") {
       cargarCamiones();

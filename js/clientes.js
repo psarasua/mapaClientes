@@ -1,7 +1,10 @@
 import { supabase } from "./supabaseConfig.js";
 import { abrirMapa } from "./mapa.js";
 
-export async function cargarClientes() {
+let paginaActual = 1;
+const pageSize = 100;
+
+export async function cargarClientes(page = 1) {
   const spinnerContainer = document.getElementById("spinner-container");
   const progressBar = document.getElementById("progress-bar");
   const tbody = document.getElementById("clientes-body");
@@ -15,7 +18,13 @@ export async function cargarClientes() {
   progressBar.innerText = "0%";
 
   try {
-    const { data, error } = await supabase.from("clientes").select("*");
+    const from = (page - 1) * pageSize;
+    const to = from + pageSize - 1;
+
+    const { data, error, count } = await supabase
+      .from("clientes")
+      .select("*", { count: "exact" })
+      .range(from, to);
     if (error) throw new Error(error.message);
 
     // Simular carga progresiva de 3 segundos
@@ -41,7 +50,8 @@ export async function cargarClientes() {
                       style="cursor:pointer;">✓ Ver en mapa</td>`
                 : '<td class="bg-danger">⚠ Sin ubicación</td>';
               return `
-                <tr data-id="${cliente.id}">
+                
+                  <td${cliente.id == null ? ' style="background-color:#fff3cd;"' : ''}>${cliente.id ?? ''}</td>
                   <td${cliente.codigo_alternativo == null ? ' style="background-color:#fff3cd;"' : ''}>${cliente.codigo_alternativo ?? ''}</td>
                   <td${cliente.nombre == null ? ' style="background-color:#fff3cd;"' : ''}>${cliente.nombre ?? ''}</td>
                   <td${cliente.razon == null ? ' style="background-color:#fff3cd;"' : ''}>${cliente.razon ?? ''}</td>
@@ -49,6 +59,7 @@ export async function cargarClientes() {
                   <td${cliente.telefono == null ? ' style="background-color:#fff3cd;"' : ''}>${cliente.telefono ?? ''}</td>
                   <td${cliente.rut == null ? ' style="background-color:#fff3cd;"' : ''}>${cliente.rut ?? ''}</td>
                     ${bandera}
+                    <td>${cliente.activo ? 'Sí' : 'No'}</td>
                   <td>
                     <button class="btn btn-sm btn-primary editar">
                       <i class="fas fa-edit"></i>
@@ -84,5 +95,46 @@ export async function cargarClientes() {
     spinnerContainer.style.display = "none";
     tbody.innerHTML = "<tr><td colspan='7'>Error al cargar clientes.</td></tr>";
   }
+
+  // Actualiza el número de página
+  document.getElementById(
+    "pagina-actual"
+  ).textContent = `Página ${page} de ${Math.ceil(count / pageSize)}`;
+  // Habilita/deshabilita botones según corresponda
+  document.getElementById("anterior").disabled = page <= 1;
+  document.getElementById("siguiente").disabled = to + 1 >= count;
 }
-window.cargarClientes = cargarClientes;
+
+// Eventos de paginación
+document.getElementById("anterior").onclick = () => {
+  if (paginaActual > 1) {
+    paginaActual--;
+    cargarClientes(paginaActual);
+  }
+};
+document.getElementById("siguiente").onclick = () => {
+  paginaActual++;
+  cargarClientes(paginaActual);
+};
+
+// Llama a la función al cargar la página
+cargarClientes();
+
+if (seccion === "clientes") {
+  cargarClientes();
+  // Asigna los eventos aquí, cuando los botones ya existen
+  const btnAnterior = document.getElementById("anterior");
+  const btnSiguiente = document.getElementById("siguiente");
+  if (btnAnterior && btnSiguiente) {
+    btnAnterior.onclick = () => {
+      if (paginaActual > 1) {
+        paginaActual--;
+        cargarClientes(paginaActual);
+      }
+    };
+    btnSiguiente.onclick = () => {
+      paginaActual++;
+      cargarClientes(paginaActual);
+    };
+  }
+}
