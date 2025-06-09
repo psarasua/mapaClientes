@@ -1,4 +1,4 @@
-import { cargarClientes, asignarEventosPaginacion } from './clientes.js';
+import { cargarClientes, asignarEventosPaginacion, asignarBusquedaClientes } from './clientes.js';
 import { cargarCamiones } from './camiones.js';
 import { cargarDiasEntrega } from './dias_entrega.js';
 import { cargarRepartos } from './camiones_clientes.js';
@@ -37,6 +37,7 @@ async function cargarContenido(seccion) {
     if (seccion === "clientes") {
       cargarClientes();
       asignarEventosPaginacion();
+      asignarBusquedaClientes();
     }
     if (seccion === "camiones") {
       cargarCamiones();

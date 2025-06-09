@@ -4,7 +4,7 @@ import { abrirMapa } from "./mapa.js";
 let paginaActual = 1;
 const pageSize = 100;
 
-export async function cargarClientes(page = 1) {
+export async function cargarClientes(page = 1, busqueda = "") {
   const spinnerContainer = document.getElementById("spinner-container");
   const progressBar = document.getElementById("progress-bar");
   const tbody = document.getElementById("clientes-body");
@@ -25,10 +25,19 @@ export async function cargarClientes(page = 1) {
     const from = (page - 1) * pageSize;
     const to = from + pageSize - 1;
 
-    const { data, error, count: total } = await supabase
+    let query = supabase
       .from("clientes")
       .select("*", { count: "exact" })
       .range(from, to);
+
+    if (busqueda && busqueda.trim() !== "") {
+      // Filtra por nombre, razón o dirección (ajusta los campos según tu tabla)
+      query = query.ilike("nombre", `%${busqueda}%`);
+      // Si quieres buscar en varios campos, usa or:
+      // query = query.or(`nombre.ilike.%${busqueda}%,razon.ilike.%${busqueda}%,direccion.ilike.%${busqueda}%`);
+    }
+
+    const { data, error, count: total } = await query;
 
     console.log("data:", data, "error:", error, "total:", total);
     
@@ -132,6 +141,28 @@ export function asignarEventosPaginacion() {
     btnSiguiente.onclick = () => {
       paginaActual++;
       cargarClientes(paginaActual);
+    };
+  }
+}
+
+export function asignarBusquedaClientes() {
+  const inputBusqueda = document.getElementById("busqueda-clientes");
+  const btnBuscar = document.getElementById("btn-buscar");
+  const btnBorrar = document.getElementById("btn-borrar-busqueda");
+  if (inputBusqueda && btnBuscar) {
+    btnBuscar.onclick = () => {
+      cargarClientes(1, inputBusqueda.value);
+    };
+    inputBusqueda.onkeyup = (e) => {
+      if (e.key === "Enter") {
+        cargarClientes(1, inputBusqueda.value);
+      }
+    };
+  }
+  if (btnBorrar && inputBusqueda) {
+    btnBorrar.onclick = () => {
+      inputBusqueda.value = "";
+      cargarClientes(1, "");
     };
   }
 }
