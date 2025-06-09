@@ -1,4 +1,4 @@
-import { cargarClientes } from './clientes.js';
+import { cargarClientes, asignarEventosPaginacion } from './clientes.js';
 import { cargarCamiones } from './camiones.js';
 import { cargarDiasEntrega } from './dias_entrega.js';
 import { cargarRepartos } from './camiones_clientes.js';
@@ -36,21 +36,7 @@ async function cargarContenido(seccion) {
     // Si la sección es "clientes", intentar ejecutar cargarClientes si existe
     if (seccion === "clientes") {
       cargarClientes();
-      // Asigna los eventos aquí
-      const btnAnterior = document.getElementById("anterior");
-      const btnSiguiente = document.getElementById("siguiente");
-      if (btnAnterior && btnSiguiente) {
-        btnAnterior.onclick = () => {
-          if (paginaActual > 1) {
-            paginaActual--;
-            cargarClientes(paginaActual);
-          }
-        };
-        btnSiguiente.onclick = () => {
-          paginaActual++;
-          cargarClientes(paginaActual);
-        };
-      }
+      asignarEventosPaginacion();
     }
     if (seccion === "camiones") {
       cargarCamiones();
