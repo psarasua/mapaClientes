@@ -4,10 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Camiones/Clientes</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 </head>
 <body>
     <!-- Botón para abrir el modal -->
 <button id="btn-agregar-reparto" class="btn btn-success mb-3">Agregar</button>
+<button id="btn-ver-mapa" class="btn btn-success mb-3">Ver mapa</button>
 
 <table class="table table-striped">
     <thead>
@@ -54,6 +57,8 @@
     </div>
   </div>
 </div>
+
+<div id="mapa-clientes" style="height: 400px; display: none; margin-bottom: 1rem;"></div>
 
 </body>
 <script src="../js/camiones_clientes.js"></script>

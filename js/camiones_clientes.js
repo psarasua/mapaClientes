@@ -3,9 +3,9 @@ import { supabase } from './supabaseConfig.js';
 // Cargar los repartos existentes y mostrarlos en la tabla
 export async function cargarRepartos() {
   const { data, error } = await supabase.from('camion_dias_entrega').select(`*, 
-      camiones (descripcion),
-      dias_entrega (descripcion),
-      clientes (nombre)`);
+    camiones (descripcion),
+    dias_entrega (descripcion),
+    clientes (id, nombre, x, y)`); 
   if (error) {
     console.error("Error al cargar datos:", error);
     return;
@@ -16,7 +16,7 @@ export async function cargarRepartos() {
   tableBody.innerHTML = ""; // Limpiar tabla
 
   data.forEach(camion => {
-    let fila = `<tr>
+    let fila = `<tr data-cliente-id="${camion.clientes?.id ?? ''}">
         <td>${camion.id}</td>
         <td>${camion.camiones?.descripcion ?? ''}</td>
         <td>${camion.dias_entrega?.descripcion ?? ''}</td>
@@ -122,7 +122,7 @@ export function asignarEventosRepartos() {
 
           const { error } = await supabase
             .from('camion_dias_entrega')
-            .insert([{ camion_id, cliente_id, dia_id }]);
+            .insert(inserts);
 
           if (!error) {
             alert('Alta exitosa');
@@ -253,5 +253,63 @@ export function asignarEventosRepartos() {
   modalElement.addEventListener('hidden.bs.modal', function () {
     document.getElementById('btn-agregar-reparto')?.focus();
   }, { once: true });
+
+  document.getElementById('btn-ver-mapa').onclick = async function() {
+    // Obtén los clientes de la tabla actual (puedes usar la variable data si está disponible)
+    const clienteIds = Array.from(document.querySelectorAll('#camion_clienteTableBody tr'))
+      .map(tr => Number(tr.getAttribute('data-cliente-id')))
+      .filter(id => !isNaN(id));
+
+    if (!clienteIds.length) {
+      alert('No hay clientes para mostrar en el mapa.');
+      return;
+    }
+
+    console.log("clienteIds:", clienteIds, Array.isArray(clienteIds));
+
+    const { data: clientes, error } = await supabase
+      .from('clientes')
+      .select('nombre, x, y')
+      .in('id', clienteIds);
+
+    if (error) {
+      console.error("Supabase error:", error);
+      alert('Error al consultar clientes en Supabase');
+      return;
+    }
+
+    const mapaDiv = document.getElementById('mapa-clientes');
+    mapaDiv.style.display = 'block';
+
+    // Inicializa el mapa solo una vez
+    if (!window._mapaClientes) {
+      window._mapaClientes = L.map('mapa-clientes').setView([0, 0], 2);
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap contributors'
+      }).addTo(window._mapaClientes);
+    }
+    const mapa = window._mapaClientes;
+
+    // Limpia marcadores anteriores
+    if (window._mapaMarkers) {
+      window._mapaMarkers.forEach(m => mapa.removeLayer(m));
+    }
+    window._mapaMarkers = [];
+
+    // Agrega marcadores
+    clientes.forEach(cliente => {
+      if (cliente.x && cliente.y) {
+        const marker = L.marker([cliente.y, cliente.x])
+          .addTo(mapa)
+          .bindPopup(cliente.nombre);
+        window._mapaMarkers.push(marker);
+      }
+    });
+
+    // Centra el mapa si hay clientes
+    if (clientes.length > 0 && clientes[0].y && clientes[0].x) {
+      mapa.setView([clientes[0].y, clientes[0].x], 10);
+    }
+  };
 }
 
