@@ -1,17 +1,24 @@
 import { supabase } from "./supabaseConfig.js";
 import { abrirMapa } from "./mapa.js";
 
+// Variables globales para la paginación
 let paginaActual = 1;
 const pageSize = 100;
 
+/**
+ * Carga los clientes desde Supabase y los muestra en la tabla.
+ * @param {number} page - Número de página a mostrar.
+ * @param {string} busqueda - Texto de búsqueda para filtrar clientes.
+ */
 export async function cargarClientes(page = 1, busqueda = "") {
+  // Obtiene referencias a los elementos del DOM necesarios
   const spinnerContainer = document.getElementById("spinner-container");
   const progressBar = document.getElementById("progress-bar");
   const tbody = document.getElementById("clientes-body");
   const errorContainer = document.getElementById("error-container");
   const errorMessage = document.getElementById("error-message");
 
-  // Ocultar error previo y mostrar el spinner
+  // Oculta mensajes de error previos y muestra el spinner de carga
   if (errorContainer) errorContainer.style.display = "none";
   if (spinnerContainer) spinnerContainer.style.display = "block";
   if (progressBar) {
@@ -22,14 +29,18 @@ export async function cargarClientes(page = 1, busqueda = "") {
 
   let count = 0;
   try {
+    // Calcula el rango de registros a solicitar según la página
     const from = (page - 1) * pageSize;
     const to = from + pageSize - 1;
 
+    // Construye la consulta a Supabase
     let query = supabase
       .from("clientes")
       .select("*", { count: "exact" })
+      .eq("activo", true)
       .range(from, to);
 
+    // Si hay texto de búsqueda, filtra por nombre (puedes ampliar a otros campos)
     if (busqueda && busqueda.trim() !== "") {
       // Filtra por nombre, razón o dirección (ajusta los campos según tu tabla)
       query = query.ilike("nombre", `%${busqueda}%`);
@@ -37,13 +48,15 @@ export async function cargarClientes(page = 1, busqueda = "") {
       // query = query.or(`nombre.ilike.%${busqueda}%,razon.ilike.%${busqueda}%,direccion.ilike.%${busqueda}%`);
     }
 
+    // Ejecuta la consulta y obtiene los datos
     const { data, error, count: total } = await query;
 
+    // Log para depuración
     console.log("data:", data, "error:", error, "total:", total);
     
     count = total;
 
-    // Simular carga progresiva de 3 segundos
+    // Simula una barra de progreso de carga (3 segundos)
     let porcentaje = 0;
     const intervalo = setInterval(() => {
       porcentaje += 20;
@@ -55,6 +68,7 @@ export async function cargarClientes(page = 1, busqueda = "") {
       if (porcentaje >= 100) {
         clearInterval(intervalo);
         setTimeout(() => {
+          // Renderiza las filas de la tabla con los datos recibidos
           if (tbody) {
             tbody.innerHTML = (data || [])
               .map((cliente) => {
@@ -94,7 +108,7 @@ export async function cargarClientes(page = 1, busqueda = "") {
               .join("");
           }
 
-          // Agrega el evento click a los botones "Ver en mapa"
+          // Asigna el evento click a los botones "Ver en mapa"
           document.querySelectorAll(".btn-mapa").forEach((btn) => {
             btn.addEventListener("click", function () {
               const x = this.getAttribute("data-x");
@@ -105,18 +119,20 @@ export async function cargarClientes(page = 1, busqueda = "") {
             });
           });
 
+          // Oculta el spinner al terminar la carga
           if (spinnerContainer) spinnerContainer.style.display = "none";
         }, 500);
       }
     }, 600);
   } catch (error) {
+    // Manejo de errores: muestra mensaje y oculta spinner
     if (errorMessage) errorMessage.innerText = error.message || "Error desconocido";
     if (errorContainer) errorContainer.style.display = "block";
     if (spinnerContainer) spinnerContainer.style.display = "none";
     if (tbody) tbody.innerHTML = "<tr><td colspan='11'>Error al cargar clientes.</td></tr>";
   }
 
-  // Actualiza el número de página y botones
+  // Actualiza el número de página y el estado de los botones de paginación
   const paginaActualSpan = document.getElementById("pagina-actual");
   if (paginaActualSpan) {
     paginaActualSpan.textContent = `Página ${page} de ${Math.ceil((count || 1) / pageSize)}`;
@@ -127,7 +143,9 @@ export async function cargarClientes(page = 1, busqueda = "") {
   if (btnSiguiente) btnSiguiente.disabled = (page * pageSize) >= (count || 0);
 }
 
-// Eventos de paginación
+/**
+ * Asigna los eventos a los botones de paginación "Anterior" y "Siguiente".
+ */
 export function asignarEventosPaginacion() {
   const btnAnterior = document.getElementById("anterior");
   const btnSiguiente = document.getElementById("siguiente");
@@ -145,6 +163,10 @@ export function asignarEventosPaginacion() {
   }
 }
 
+/**
+ * Asigna los eventos a la barra de búsqueda y al botón "Borrar".
+ * Permite buscar clientes por nombre y limpiar la búsqueda.
+ */
 export function asignarBusquedaClientes() {
   const inputBusqueda = document.getElementById("busqueda-clientes");
   const btnBuscar = document.getElementById("btn-buscar");
