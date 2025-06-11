@@ -1,7 +1,7 @@
 import { cargarClientes, asignarEventosPaginacion, asignarBusquedaClientes } from './clientes.js';
 import { cargarCamiones } from './camiones.js';
 import { cargarDiasEntrega } from './dias_entrega.js';
-import { cargarRepartos } from './camiones_clientes.js';
+import { cargarRepartos, asignarEventosRepartos } from './camiones_clientes.js';
 import { supabase } from './supabaseConfig.js';
 
 let excelData = [];
@@ -47,6 +47,7 @@ async function cargarContenido(seccion) {
     }
     if (seccion === "camiones_clientes") {
       cargarRepartos();
+      asignarEventosRepartos(); // <-- Aquí, después de insertar el HTML
     }
      
   } catch (error) {
