@@ -25,11 +25,9 @@ document.addEventListener("click", async (event) => {
   }
 });
 async function eliminarCamion(camionId) {
-  console.log("Eliminando camión con ID:", camionId); // <-- Agrega esto
   const { error } = await supabase.from("camiones").delete().eq("id", camionId);
 
   if (error) {
-    console.error("Error eliminando camión:", error);
     Swal.fire("Error", "No se pudo eliminar el camión.", "error");
   }
 }
@@ -87,6 +85,23 @@ export async function cargarCamiones() {
       tableBody.innerHTML += fila;
     });
 
+    // Asignar evento a los botones editar
+    document.querySelectorAll('.editar').forEach(btn => {
+      btn.onclick = function() {
+        const fila = btn.closest('tr');
+        const id = fila.children[0].innerText;
+        const descripcion = fila.children[1].innerText.trim();
+
+        // Carga los datos en el modal
+        document.getElementById("descripcion").value = descripcion;
+        document.getElementById("camionIdEditar").value = id;
+
+        // Abre el modal
+        const modal = new bootstrap.Modal(document.getElementById("modalCamion"));
+        modal.show();
+      };
+    });
+
     // Ocultar spinner al terminar
     spinnerContainer.style.display = "none";
   }
@@ -97,9 +112,21 @@ export async function cargarCamiones() {
     form.addEventListener("submit", async function (event) {
       event.preventDefault();
       const descripcion = document.getElementById("descripcion").value;
-      const { data, error } = await supabase
-        .from("camiones")
-        .insert([{ descripcion }]);
+      const id = document.getElementById("camionIdEditar").value;
+
+      let data, error;
+      if (id) {
+        // Es edición
+        ({ data, error } = await supabase
+          .from("camiones")
+          .update({ descripcion })
+          .eq("id", id));
+      } else {
+        // Es alta
+        ({ data, error } = await supabase
+          .from("camiones")
+          .insert([{ descripcion }]));
+      }
 
       if (error) {
         // Mostrar toast de error
@@ -114,10 +141,13 @@ export async function cargarCamiones() {
         );
         toastExito.show();
         form.reset();
+        document.getElementById("camionIdEditar").value = ""; // Limpia el hidden
         let modal = bootstrap.Modal.getInstance(
           document.getElementById("modalCamion")
         );
         modal.hide();
+        // Mueve el foco a un botón fuera del modal
+        document.getElementById("btn-agregar-camion")?.focus();
         cargarCamiones();
       }
     });

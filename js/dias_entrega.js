@@ -41,10 +41,10 @@ export async function cargarDiasEntrega() {
                 <td>${dia.id}</td>
                 <td>${dia.descripcion}</td>
                 <td>
-                    <button class="btn btn-sm btn-primary editar">
+                    <button class="btn btn-sm btn-primary editar" data-id="${dia.id}">
                         <i class="fas fa-edit"></i>
                     </button>
-                    <button class="btn btn-sm btn-danger eliminar">
+                    <button class="btn btn-sm btn-danger eliminar" data-id="${dia.id}">
                         <i class="fas fa-trash-alt"></i>
                     </button>
                 </td>
@@ -57,5 +57,47 @@ export async function cargarDiasEntrega() {
     }
 }
 
+function asignarEventosDiasEntrega() {
+  document.querySelectorAll('.btn-eliminar').forEach(btn => {
+    btn.onclick = async function() {
+      const id = this.getAttribute('data-id');
+      if (confirm('¿Seguro que deseas eliminar este día de entrega?')) {
+        const { error } = await supabase
+          .from('dias_entrega')
+          .delete()
+          .eq('id', id);
+        if (!error) {
+          alert('Eliminado correctamente');
+          cargarDiasEntrega();
+        } else {
+          alert('Error al eliminar');
+        }
+      }
+    };
+  });
+
+  document.querySelectorAll('.btn-editar').forEach(btn => {
+    btn.onclick = async function() {
+      const id = this.getAttribute('data-id');
+      // Aquí puedes abrir el modal y cargar los datos para editar
+      // Ejemplo:
+      const { data, error } = await supabase
+        .from('dias_entrega')
+        .select('*')
+        .eq('id', id)
+        .single();
+      if (!error) {
+        document.getElementById('descripcion').value = data.descripcion;
+        document.getElementById('diaEntregaIdEditar').value = id;
+        const modal = new bootstrap.Modal(document.getElementById('modalDiaEntrega'));
+        modal.show();
+      } else {
+        alert('Error al cargar datos');
+      }
+    };
+  });
+}
+
 // Si necesitas que sea global:
 window.cargarDiasEntrega = cargarDiasEntrega;
+asignarEventosDiasEntrega();

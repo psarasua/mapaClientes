@@ -16,7 +16,8 @@ export async function cargarRepartos() {
   tableBody.innerHTML = ""; // Limpiar tabla
 
   data.forEach(camion => {
-    let fila = `<tr data-cliente-id="${camion.clientes?.id ?? ''}">
+    let color = getColorForCliente(camion.clientes?.id); // función que asigna un color único por cliente
+    let fila = `<tr data-cliente-id="${camion.clientes?.id ?? ''}" style="background-color:${color};">
         <td>${camion.id}</td>
         <td>${camion.camiones?.descripcion ?? ''}</td>
         <td>${camion.dias_entrega?.descripcion ?? ''}</td>
@@ -24,6 +25,9 @@ export async function cargarRepartos() {
         <td>
           <button class="btn btn-sm btn-primary btn-editar" data-id="${camion.id}">Editar</button>
           <button class="btn btn-sm btn-danger btn-eliminar" data-id="${camion.id}">Eliminar</button>
+          <button class="btn btn-sm btn-success ver-mapa" data-cliente-id="${camion.clientes?.id ?? ''}" style="background-color:${color};border-color:${color};">
+            <i class="fas fa-map-marker-alt"></i>
+          </button>
         </td>
     </tr>`;
     tableBody.innerHTML += fila;
@@ -298,8 +302,15 @@ export function asignarEventosRepartos() {
 
     // Agrega marcadores
     clientes.forEach(cliente => {
-      if (cliente.x && cliente.y) {
-        const marker = L.marker([cliente.y, cliente.x])
+      const color = getColorForCliente(cliente.id);
+      if (cliente.latitud && cliente.longitud) {
+        const icon = L.divIcon({
+          className: 'custom-pin',
+          html: `<i class="fas fa-map-marker-alt" style="color:${color};font-size:2rem"></i>`,
+          iconSize: [24, 24],
+          iconAnchor: [12, 24]
+        });
+        const marker = L.marker([cliente.latitud, cliente.longitud], { icon })
           .addTo(mapa)
           .bindPopup(cliente.nombre);
         window._mapaMarkers.push(marker);
@@ -311,5 +322,36 @@ export function asignarEventosRepartos() {
       mapa.setView([clientes[0].y, clientes[0].x], 10);
     }
   };
+
+  document.querySelectorAll('.ver-mapa').forEach(btn => {
+    btn.onclick = function() {
+      const clienteId = this.getAttribute('data-cliente-id');
+      // Centra el mapa en ese cliente y resalta su pin
+      centrarYResaltarClienteEnMapa(clienteId);
+    };
+  });
 }
+
+// Función para asignar un color único a cada cliente
+const colores = [
+  "#e6194b", "#3cb44b", "#ffe119", "#4363d8", "#f58231", "#911eb4",
+  "#46f0f0", "#f032e6", "#bcf60c", "#fabebe", "#008080", "#e6beff"
+];
+
+function getColorForCliente(clienteId) {
+  if (!clienteId) return "#cccccc";
+  return colores[clienteId % colores.length];
+}
+
+// Función para calcular el hash de una cadena (usado para getColorForCliente)
+String.prototype.hashCode = function(){
+  var hash = 0, i, chr;
+  if (this.length === 0) return hash;
+  for (i = 0; i < this.length; i++) {
+    chr   = this.charCodeAt(i);
+    hash  = ((hash << 5) - hash) + chr;
+    hash |= 0; // Convert to 32bit integer
+  }
+  return hash;
+};
 
