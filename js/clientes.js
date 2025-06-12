@@ -51,9 +51,7 @@ export async function cargarClientes(page = 1, busqueda = "") {
     // Ejecuta la consulta y obtiene los datos
     const { data, error, count: total } = await query;
 
-    // Log para depuración
-    console.log("data:", data, "error:", error, "total:", total);
-    
+   
     count = total;
 
     // Simula una barra de progreso de carga (3 segundos)

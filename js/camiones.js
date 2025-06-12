@@ -127,3 +127,5 @@ export async function cargarCamiones() {
 
 // Si necesitas que sea global:
 window.cargarCamiones = cargarCamiones;
+
+
